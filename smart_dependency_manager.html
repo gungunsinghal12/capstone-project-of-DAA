@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101827">
+<title>Smart Dependency & Project Execution Manager</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1220;--panel:#121d2e;--panel2:#172438;--ink:#e8eef8;--muted:#91a1b8;--line:#293950;--accent:#55d6be;--blue:#7aa7ff;--amber:#f5b95f;--red:#ff7777;--node:#1a2940;--shadow:0 12px 30px #0003}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 15% 0%,#1a2b43 0,transparent 38%),var(--bg);color:var(--ink);font:14px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif}
+button,input,textarea,select{font:inherit}button{cursor:pointer;border:1px solid var(--line);background:var(--panel2);color:var(--ink);padding:9px 13px;border-radius:9px;transition:.15s}button:hover{border-color:var(--accent);transform:translateY(-1px)}button:disabled{opacity:.5;cursor:wait;transform:none}.primary{background:var(--accent);color:#08201d;border-color:var(--accent);font-weight:700}.quiet{background:transparent}.danger{color:var(--red)}input,textarea,select{background:#0e1929;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:9px;min-width:0}input:focus,textarea:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+header{max-width:1440px;margin:auto;padding:28px 24px 18px;display:flex;align-items:center;justify-content:space-between;gap:18px}.brand{display:flex;gap:13px;align-items:center}.logo{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,var(--accent),#7aa7ff);display:grid;place-items:center;color:#071a20;font-size:22px;font-weight:900}h1{font-size:clamp(21px,3vw,29px);line-height:1.2;margin:0;letter-spacing:-.7px}.subtitle{color:var(--muted);margin:5px 0 0}.header-actions{display:flex;gap:8px;flex-wrap:wrap}
+main{max-width:1440px;margin:auto;padding:0 24px 40px}.layout{display:grid;grid-template-columns:minmax(280px,350px) minmax(0,1fr);gap:18px;align-items:start}.stack{display:grid;gap:18px}.card{background:linear-gradient(160deg,#152238,var(--panel));border:1px solid var(--line);border-radius:15px;padding:17px;box-shadow:var(--shadow);min-width:0}.card h2{font-size:15px;margin:0 0 12px;letter-spacing:.1px}.muted{color:var(--muted)}.small{font-size:12px}.field-label{display:block;font-size:12px;color:var(--muted);margin:12px 0 6px}.editor{width:100%;min-height:230px;resize:vertical;font:13px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace}.hint{font-size:12px;color:var(--muted);margin:8px 0 0}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.sample-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.sample-row button{font-size:12px;padding:7px 9px}.error{display:none;border:1px solid #773d48;background:#3a202b;color:#ffb4bc;border-radius:9px;padding:10px;margin:0 0 12px}.error.show{display:block}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:15px}.stat{padding:13px;background:var(--panel2);border:1px solid var(--line);border-radius:11px}.stat strong{display:block;font-size:23px;line-height:1.2}.stat span{font-size:12px;color:var(--muted)}.stat .good{color:var(--accent)}.stat .bad{color:var(--red)}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.toolbar .spacer{flex:1}.toolbar input[type=search]{width:min(220px,100%)}.tabs{display:flex;gap:6px}.tabs button.active{border-color:var(--accent);color:var(--accent);background:#17343a}.graph-wrap{border:1px solid var(--line);border-radius:11px;background:#0d1828;overflow:auto;min-height:250px;max-height:590px}.graph-wrap svg{display:block;min-width:100%}.legend{display:flex;gap:15px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:10px}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;background:var(--accent)}.dot.red{background:var(--red)}.dot.blue{background:var(--blue)}
+.chips{display:flex;gap:7px;flex-wrap:wrap}.chip{display:inline-flex;align-items:center;gap:7px;background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:5px 10px;font-size:12px}.chip b{color:var(--accent);font-size:11px}.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.round{border:1px solid var(--line);border-radius:9px;padding:10px;margin:8px 0;background:#0e1929}.round-title{font-size:11px;color:var(--accent);font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.6px}
+.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:12px}th,td{text-align:left;padding:9px;border-bottom:1px solid var(--line);white-space:nowrap}th{color:var(--muted);font-weight:600}td:last-child,th:last-child{text-align:right}.status{font-weight:700}.status.done{color:var(--accent)}.status.blocked{color:var(--red)}.status.ready{color:var(--blue)}
+.progress{height:7px;background:#26364b;border-radius:9px;overflow:hidden;margin:10px 0}.progress span{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}.step-line{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px}.step-line input{flex:1;padding:0;accent-color:var(--accent)}
+.bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}.explain{color:var(--muted);font-size:13px;margin:0}.explain strong{color:var(--ink)}.empty{color:var(--muted);text-align:center;padding:35px 10px}.cycle-path{color:var(--red);font-weight:600;overflow-wrap:anywhere}
+#benchChart{width:100%;height:220px;display:block;background:#0e1929;border-radius:9px;border:1px solid var(--line)}footer{max-width:1440px;margin:0 auto;padding:0 24px 25px;color:var(--muted);font-size:11px}
+@media(max-width:950px){.layout{grid-template-columns:1fr}.bottom-grid{grid-template-columns:1fr}}@media(max-width:560px){header{padding:20px 15px;align-items:flex-start;flex-direction:column}main{padding:0 15px 28px}.stats{grid-template-columns:repeat(2,1fr)}.result-grid{grid-template-columns:1fr}.card{padding:14px}.toolbar input[type=search]{width:100%}.toolbar .spacer{display:none}}
+</style>
+</head>
+<body>
+<header>
+ <div class="brand"><div class="logo">↗</div><div><h1>Smart Dependency Manager</h1><p class="subtitle">Plan tasks, detect blockers and build an execution schedule.</p></div></div>
+ <div class="header-actions"><button id="exportBtn">Export report</button><button id="resetBtn" class="quiet">Reset</button></div>
+</header>
+<main>
+<div class="layout">
+ <aside class="stack">
+  <section class="card">
+   <h2>01 / Project dependencies</h2>
+   <textarea id="source" class="editor" spellcheck="false" aria-label="Task dependencies"></textarea>
+   <p class="hint">Use <b>A -&gt; B</b> when A must finish before B. Add a standalone task on its own line. One dependency per line.</p>
+   <div class="actions"><button class="primary" id="scheduleBtn">Build schedule</button><button id="clearBtn">Clear</button></div>
+   <div class="sample-row"><button id="validSample">Valid sample</button><button id="cycleSample">Cycle sample</button><button id="randomSample">Random project</button></div>
+   <div id="errorBox" class="error" role="alert"></div>
+  </section>
+  <section class="card">
+   <h2>02 / Execution plan</h2>
+   <p class="muted small">Kahn's algorithm · queue-based topological sort</p>
+   <div id="kahnResult" class="chips"></div>
+   <hr style="border:0;border-top:1px solid var(--line);margin:15px 0">
+   <p class="muted small">DFS · reverse finishing-time order</p>
+   <div id="dfsResult" class="chips"></div>
+   <hr style="border:0;border-top:1px solid var(--line);margin:15px 0">
+   <h2 style="margin-bottom:7px">Parallel execution rounds</h2>
+   <div id="roundsResult"></div>
+  </section>
+ </aside>
+ <section class="stack">
+  <section class="card">
+   <div class="stats" id="stats">
+    <div class="stat"><strong>0</strong><span>Tasks</span></div><div class="stat"><strong>0</strong><span>Dependencies</span></div><div class="stat"><strong>—</strong><span>Project status</span></div><div class="stat"><strong>0</strong><span>Parallel rounds</span></div>
+   </div>
+   <div class="toolbar">
+    <div class="tabs"><button id="kahnMode" class="active">Kahn view</button><button id="dfsMode">DFS view</button></div>
+    <button id="playBtn">▶ Play</button><button id="stepBack">←</button><button id="stepNext">→</button>
+    <div class="spacer"></div><input id="searchTask" type="search" placeholder="Find a task…" aria-label="Find a task">
+   </div>
+   <div class="step-line"><span id="stepLabel">0 / 0 completed</span><input id="stepRange" type="range" min="0" max="0" value="0" aria-label="Execution progress"></div>
+   <div class="progress"><span id="progressBar"></span></div>
+   <div class="graph-wrap"><svg id="graph" role="img" aria-label="Task dependency graph"></svg></div>
+   <div class="legend"><span><i class="dot"></i>Completed</span><span><i class="dot blue"></i>Pending</span><span><i class="dot red"></i>Cycle edge</span></div>
+  </section>
+  <section class="card">
+   <div class="toolbar"><h2 style="margin:0">03 / Task status</h2><div class="spacer"></div><span id="taskCount" class="muted small"></span></div>
+   <div class="table-wrap"><table><thead><tr><th>Task</th><th>Dependencies</th><th>Dependents</th><th>Status</th></tr></thead><tbody id="taskRows"></tbody></table></div>
+  </section>
+  <section class="card">
+   <div class="toolbar"><h2 style="margin:0">04 / Algorithm benchmark</h2><div class="spacer"></div><button id="benchmarkBtn">Run benchmark</button></div>
+   <p id="benchmarkInfo" class="muted small">Compares Kahn and DFS on generated directed acyclic graphs. Results vary by device and browser.</p>
+   <canvas id="benchChart" width="900" height="220" aria-label="Benchmark chart"></canvas>
+   <div class="table-wrap" id="benchTable"></div>
+  </section>
+ </section>
+</div>
+<div class="bottom-grid">
+ <section class="card"><h2>Kahn's algorithm (BFS)</h2><p class="explain"><strong>Hinglish:</strong> Jin tasks ki koi pending dependency nahi hoti (in-degree 0), unhe queue mein daalte hain. Queue se task nikaal kar complete mark karte hain aur uske dependent tasks ka in-degree kam karte hain. Jiska in-degree 0 ho jaaye, woh queue mein aa jaata hai. Agar saare tasks process na hon, to cycle present hai.</p><p class="explain" style="margin-top:10px"><strong>Complexity:</strong> Time O(V + E), space O(V). Parallel rounds har iteration mein saath start ho sakne wale tasks dikhati hain.</p></section>
+ <section class="card"><h2>Depth-first search (DFS)</h2><p class="explain"><strong>Hinglish:</strong> DFS har node ko WHITE (unvisited), GRAY (current path) ya BLACK (completed) mark karta hai. Kisi GRAY node par wapas pahunchna back edge hai, jo cycle prove karta hai. DAG mein nodes ko finishing time ke reverse order mein rakhne se topological order milta hai.</p><p class="explain" style="margin-top:10px"><strong>Complexity:</strong> Time O(V + E), space O(V). Dono algorithms valid DAG ke liye topological order nikaalte hain.</p></section>
+</div>
+</main>
+<footer>Smart Dependency & Project Execution Manager · Runs locally in your browser. No project data is uploaded.</footer>
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const VALID = `Requirements -> Design
+Design -> Frontend
+Design -> Backend
+Backend -> Database Setup
+Database Setup -> Integration
+Frontend -> Integration
+Integration -> Testing
+Testing -> Deployment`;
+const CYCLE = VALID + `\nDeployment -> Design`;
+let graph=null, kahnData=null, dfsData=null, mode='kahn', timer=null, currentStep=0, cycleEdges=new Set(), lastBenchmark=[];
+const COLORS={accent:'#55d6be',blue:'#7aa7ff',red:'#ff7777',line:'#293950',muted:'#91a1b8',ink:'#e8eef8',panel:'#121d2e'};
+function parseGraph(raw){
+ const tasks=[],seen=new Set(),adj=new Map(),errors=[],edgeSet=new Set();
+ const add=t=>{if(!t)return;if(!seen.has(t)){seen.add(t);tasks.push(t);adj.set(t,[])}};
+ raw.split(/\r?\n/).forEach((line,i)=>{
+  const s=line.trim();if(!s)return;
+  const parts=s.split(/->|→/);
+  if(parts.length===1){if(!s.trim())return;add(s);return}
+  if(parts.length!==2||!parts[0].trim()||!parts[1].trim()){errors.push(`Line ${i+1}: use the format Task A -> Task B.`);return}
+  const a=parts[0].trim(),b=parts[1].trim(),key=a+'\0'+b;
+  add(a);add(b);
+  if(!edgeSet.has(key)){adj.get(a).push(b);edgeSet.add(key)}
+ });
+ return {tasks,adj,errors,edges:edgeSet.size};
+}
+function kahn(g){
+ const indeg=new Map(g.tasks.map(t=>[t,0]));
+ for(const u of g.tasks)for(const v of g.adj.get(u))indeg.set(v,indeg.get(v)+1);
+ let ready=g.tasks.filter(t=>indeg.get(t)===0),order=[],levels=[];
+ while(ready.length){
+  const level=ready;levels.push(level);const next=[];
+  for(const u of level){order.push(u);for(const v of g.adj.get(u)){indeg.set(v,indeg.get(v)-1);if(indeg.get(v)===0)next.push(v)}}
+  ready=next;
+ }
+ return {order:order.length===g.tasks.length?order:null,partial:order,levels,remaining:g.tasks.filter(t=>!order.includes(t))};
+}
+function dfs(g){
+ const color=new Map(g.tasks.map(t=>[t,0])),parent=new Map(),post=[];
+ for(const start of g.tasks){
+  if(color.get(start)!==0)continue;
+  color.set(start,1);const stack=[[start,0]];
+  while(stack.length){
+   const frame=stack[stack.length-1],u=frame[0],neighbours=g.adj.get(u);
+   if(frame[1]<neighbours.length){
+    const v=neighbours[frame[1]++],c=color.get(v);
+    if(c===0){parent.set(v,u);color.set(v,1);stack.push([v,0])}
+    else if(c===1){const path=[u];let x=u;while(x!==v&&parent.has(x)){x=parent.get(x);path.push(x)}path.reverse();return {order:null,cycle:path}}
+   }else{color.set(u,2);post.push(u);stack.pop()}
+  }
+ }
+ return {order:post.reverse(),cycle:null};
+}
+function setError(message){const box=$('#errorBox');box.textContent=message;box.classList.toggle('show',!!message)}
+function makeChip(text,index){const span=document.createElement('span');span.className='chip';if(index!==undefined){const b=document.createElement('b');b.textContent=String(index+1).padStart(2,'0');span.append(b)}span.append(document.createTextNode(text));return span}
+function fillChips(el,items){el.replaceChildren();if(!items.length){el.textContent='No tasks';el.className='chips muted small';return}el.className='chips';items.forEach((t,i)=>el.append(makeChip(t,i)))}
+function run(){
+ stopPlay();setError('');
+ const parsed=parseGraph($('#source').value);
+ if(parsed.errors.length){setError(parsed.errors.join(' '));return}
+ if(!parsed.tasks.length){graph=null;$('#stats').innerHTML='<div class="stat"><strong>0</strong><span>Tasks</span></div><div class="stat"><strong>0</strong><span>Dependencies</span></div><div class="stat"><strong>—</strong><span>Project status</span></div><div class="stat"><strong>0</strong><span>Parallel rounds</span></div>';['#kahnResult','#dfsResult','#roundsResult','#taskRows'].forEach(s=>$(s).replaceChildren());$('#graph').replaceChildren();return}
+ graph=parsed;kahnData=kahn(graph);dfsData=dfs(graph);cycleEdges=new Set();
+ if(dfsData.cycle){const c=dfsData.cycle;for(let i=0;i<c.length;i++)cycleEdges.add(c[i]+'\0'+c[(i+1)%c.length])}
+ const cyclic=!!dfsData.cycle;
+ $('#stats').innerHTML=`<div class="stat"><strong>${graph.tasks.length}</strong><span>Tasks</span></div><div class="stat"><strong>${graph.edges}</strong><span>Dependencies</span></div><div class="stat"><strong class="${cyclic?'bad':'good'}">${cyclic?'Cycle found':'Valid DAG'}</strong><span>${cyclic?'Scheduling blocked':'Ready to schedule'}</span></div><div class="stat"><strong>${cyclic?'—':kahnData.levels.length}</strong><span>Parallel rounds</span></div>`;
+ fillChips($('#kahnResult'),kahnData.order||[]);fillChips($('#dfsResult'),dfsData.order||[]);
+ if(cyclic){const p=dfsData.cycle.concat(dfsData.cycle[0]);$('#kahnResult').textContent=`Partial order: ${kahnData.partial.length}/${graph.tasks.length} tasks`;$('#dfsResult').innerHTML='Cycle: ';const path=document.createElement('span');path.className='cycle-path';path.textContent=p.join(' → ');$('#dfsResult').append(path);$('#roundsResult').textContent='Unavailable until the circular dependency is removed.'}
+ else{$('#roundsResult').replaceChildren();kahnData.levels.forEach((level,i)=>{const d=document.createElement('div');d.className='round';const title=document.createElement('div');title.className='round-title';title.textContent=`Round ${i+1} · ${level.length} task${level.length===1?'':'s'}`;d.append(title);const chips=document.createElement('div');chips.className='chips';level.forEach(t=>chips.append(makeChip(t)));d.append(chips);$('#roundsResult').append(d)})}
+ currentStep=0;const sequence=getSequence();$('#stepRange').max=sequence.length;$('#stepRange').value=0;$('#searchTask').value='';renderAll();
+}
+function getSequence(){if(!graph)return[];return mode==='kahn'?kahnData.partial:(dfsData.order||[])}
+function renderAll(){if(!graph)return;renderGraph();renderTasks()}
+function renderGraph(){
+ const svg=$('#graph');svg.replaceChildren();const sequence=getSequence(),done=new Set(sequence.slice(0,currentStep)),cur=sequence[currentStep-1];
+ $('#stepLabel').textContent=`${currentStep} / ${sequence.length} completed`;$ ('#progressBar').style.width=(sequence.length?currentStep/sequence.length*100:0)+'%';
+ const levels=kahnData.levels.map(x=>x.slice()),included=new Set(levels.flat()),left=graph.tasks.filter(t=>!included.has(t));if(left.length)levels.push(left);
+ const maxRows=Math.max(1,...levels.map(x=>x.length)),nodeW=150,nodeH=42,gapX=78,gapY=24,pad=35;
+ const width=Math.max(600,pad*2+levels.length*nodeW+Math.max(0,levels.length-1)*gapX),height=Math.max(260,pad*2+maxRows*(nodeH+gapY));
+ svg.setAttribute('viewBox',`0 0 ${width} ${height}`);svg.style.height=Math.min(height,560)+'px';svg.style.minWidth=Math.min(width,1000)+'px';
+ const pos=new Map();levels.forEach((level,i)=>level.forEach((task,j)=>pos.set(task,{x:pad+i*(nodeW+gapX),y:(height-(level.length*nodeH+(level.length-1)*gapY))/2+j*(nodeH+gapY)})));
+ const ns='http://www.w3.org/2000/svg',el=(tag,attrs={},txt)=>{const n=document.createElementNS(ns,tag);Object.entries(attrs).forEach(([k,v])=>n.setAttribute(k,v));if(txt!==undefined)n.textContent=txt;return n};
+ const defs=el('defs');const marker=el('marker',{id:'arrow',viewBox:'0 0 10 10',refX:9,refY:5,markerWidth:6,markerHeight:6,orient:'auto'});marker.append(el('path',{d:'M0 0 L10 5 L0 10 z',fill:COLORS.muted}));defs.append(marker);svg.append(defs);
+ for(const u of graph.tasks)for(const v of graph.adj.get(u)){const a=pos.get(u),b=pos.get(v),bad=cycleEdges.has(u+'\0'+v);let d;
+  if(b.x>a.x)d=`M${a.x+nodeW},${a.y+nodeH/2} C${a.x+nodeW+gapX/2},${a.y+nodeH/2} ${b.x-gapX/2},${b.y+nodeH/2} ${b.x},${b.y+nodeH/2}`;
+  else d=`M${a.x+nodeW/2},${a.y} C${a.x+nodeW/2},${a.y-30} ${b.x+nodeW/2},${b.y-30} ${b.x+nodeW/2},${b.y}`;
+  svg.append(el('path',{d,fill:'none',stroke:bad?COLORS.red:COLORS.muted,'stroke-width':bad?2.8:1.5,'stroke-opacity':bad?1:.65,'marker-end':'url(#arrow)'}));
+ }
+ for(const task of graph.tasks){const p=pos.get(task),isDone=done.has(task),isCurrent=task===cur,match=!$('#searchTask').value||task.toLowerCase().includes($('#searchTask').value.toLowerCase());
+  const group=el('g',{opacity:match?1:.2});group.append(el('rect',{x:p.x,y:p.y,width:nodeW,height:nodeH,rx:9,fill:isDone?COLORS.accent:'#17263b',stroke:isCurrent?COLORS.ink:(isDone?COLORS.accent:COLORS.line),'stroke-width':isCurrent?3:1.5}));
+  const label=task.length>20?task.slice(0,19)+'…':task;group.append(el('text',{x:p.x+nodeW/2,y:p.y+25,'text-anchor':'middle','font-size':12,'font-weight':600,fill:isDone?'#08201d':COLORS.ink},label));group.append(el('title',{},task));svg.append(group);
+ }
+}
+function renderTasks(){
+ const done=new Set(getSequence().slice(0,currentStep)),q=$('#searchTask').value.toLowerCase(),body=$('#taskRows');body.replaceChildren();let shown=0;
+ for(const t of graph.tasks){if(q&&!t.toLowerCase().includes(q))continue;shown++;const deps=graph.tasks.filter(x=>graph.adj.get(x).includes(t)),outs=graph.adj.get(t),tr=document.createElement('tr');
+  const status=done.has(t)?['Completed','done']:(deps.every(x=>done.has(x))&&!dfsData.cycle?['Ready','ready']:['Pending','blocked']);
+  [t,String(deps.length),String(outs.length)].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.append(td)});
+  const td=document.createElement('td');td.className='status '+status[1];td.textContent=status[0];tr.append(td);body.append(tr);
+ }
+ $('#taskCount').textContent=`${shown} of ${graph.tasks.length} shown`;
+}
+function stopPlay(){if(timer){clearInterval(timer);timer=null}$('#playBtn').textContent='▶ Play'}
+function changeMode(next){mode=next;$('#kahnMode').classList.toggle('active',mode==='kahn');$('#dfsMode').classList.toggle('active',mode==='dfs');stopPlay();currentStep=getSequence().length;$('#stepRange').max=getSequence().length;$('#stepRange').value=currentStep;renderAll()}
+function setStep(v){const max=getSequence().length;currentStep=Math.max(0,Math.min(max,Number(v)));$('#stepRange').value=currentStep;renderAll()}
+function randomSample(){const names=Array.from({length:12},(_,i)=>`Task ${i+1}`),order=[...names].sort(()=>Math.random()-.5),lines=[];for(let i=0;i<20;i++){const a=Math.floor(Math.random()*12),b=Math.floor(Math.random()*12);if(a===b)continue;const x=order.indexOf(names[a])<order.indexOf(names[b])?names[a]:names[b],y=x===names[a]?names[b]:names[a];lines.push(`${x} -> ${y}`)}return [...new Set(lines)].join('\n')}
+
+function benchmarkKahn(g){const indeg=new Int32Array(g.n);for(let u=0;u<g.n;u++)for(const v of g.adj[u])indeg[v]++;const q=new Int32Array(g.n);let tail=0,head=0;for(let i=0;i<g.n;i++)if(!indeg[i])q[tail++]=i;while(head<tail){const u=q[head++];for(const v of g.adj[u])if(--indeg[v]===0)q[tail++]=v}return tail}
+function benchmarkDfs(g){const color=new Uint8Array(g.n),post=[];for(let s=0;s<g.n;s++){if(color[s])continue;color[s]=1;const stack=[[s,0]];while(stack.length){const f=stack[stack.length-1],u=f[0];if(f[1]<g.adj[u].length){const v=g.adj[u][f[1]++];if(!color[v]){color[v]=1;stack.push([v,0])}}else{color[u]=2;post.push(u);stack.pop()}}}return post.length}
+function makeDag(n){const rank=Array.from({length:n},(_,i)=>i);let seed=42;const rnd=()=>((seed=(seed*1664525+1013904223)>>>0)/4294967296);for(let i=n-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[rank[i],rank[j]]=[rank[j],rank[i]]}const adj=Array.from({length:n},()=>[]);for(let i=0;i<n*3;i++){let a=Math.floor(rnd()*n),b=Math.floor(rnd()*n);if(a===b)continue;if(rank[a]>rank[b])[a,b]=[b,a];adj[a].push(b)}return{n,adj}}
+function measure(fn){let best=Infinity;for(let i=0;i<3;i++){const t=performance.now();fn();best=Math.min(best,performance.now()-t)}return best}
+function drawBenchmark(rows){
+ const c=$('#benchChart'),ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.fillStyle='#0e1929';ctx.fillRect(0,0,w,h);if(!rows.length)return;
+ const max=Math.max(...rows.flatMap(r=>[r.k,r.d]))*1.2||1,L=55,R=25,T=20,B=35,X=i=>L+i*(w-L-R)/(rows.length-1||1),Y=v=>h-B-(v/max)*(h-T-B);
+ ctx.strokeStyle=COLORS.line;ctx.fillStyle=COLORS.muted;ctx.font='12px sans-serif';for(let i=0;i<=4;i++){const y=T+i*(h-T-B)/4;ctx.beginPath();ctx.moveTo(L,y);ctx.lineTo(w-R,y);ctx.stroke();ctx.fillText((max*(4-i)/4).toFixed(2),8,y+4)}
+ rows.forEach((r,i)=>ctx.fillText(r.n>=1000?(r.n/1000)+'k':r.n,X(i)-10,h-12));
+ [['k',COLORS.accent],['d',COLORS.blue]].forEach(([key,color])=>{ctx.strokeStyle=color;ctx.lineWidth=3;ctx.beginPath();rows.forEach((r,i)=>i?ctx.lineTo(X(i),Y(r[key])):ctx.moveTo(X(i),Y(r[key])));ctx.stroke();rows.forEach((r,i)=>{ctx.fillStyle=color;ctx.beginPath();ctx.arc(X(i),Y(r[key]),4,0,Math.PI*2);ctx.fill()})});
+ ctx.fillStyle=COLORS.accent;ctx.fillText('Kahn',w-105,17);ctx.fillStyle=COLORS.blue;ctx.fillText('DFS',w-55,17);
+}
+async function runBenchmark(){const btn=$('#benchmarkBtn');btn.disabled=true;$('#benchmarkInfo').textContent='Benchmark running…';const rows=[];try{for(const n of [1000,5000,10000,25000,50000]){await new Promise(r=>setTimeout(r,20));const g=makeDag(n),k=measure(()=>benchmarkKahn(g)),d=measure(()=>benchmarkDfs(g));rows.push({n,e:n*3,k,d});$('#benchmarkInfo').textContent=`Measured ${n.toLocaleString()} vertices…`;}
+ lastBenchmark=rows;$('#benchTable').innerHTML='<table><thead><tr><th>Vertices</th><th>Approx. edges</th><th>Kahn (ms)</th><th>DFS (ms)</th></tr></thead><tbody>'+rows.map(r=>`<tr><td>${r.n.toLocaleString()}</td><td>${r.e.toLocaleString()}</td><td>${r.k.toFixed(3)}</td><td>${r.d.toFixed(3)}</td></tr>`).join('')+'</tbody></table>';drawBenchmark(rows);$('#benchmarkInfo').textContent='Done. Both algorithms have O(V + E) time complexity. Browser/device load affects timings.'}catch(e){$('#benchmarkInfo').textContent='Benchmark could not be completed: '+e.message}finally{btn.disabled=false}}
+function exportReport(){if(!graph){setError('Build a schedule before exporting.');return}const cyclic=!!dfsData.cycle,lines=['SMART DEPENDENCY AND PROJECT EXECUTION MANAGER','',`Tasks: ${graph.tasks.length}`,`Dependencies: ${graph.edges}`,`Status: ${cyclic?'Cycle detected':'Valid DAG'}`,'',`Kahn order: ${(kahnData.order||kahnData.partial).join(' -> ')}`,`DFS order: ${(dfsData.order||[]).join(' -> ')}`,'','PARALLEL ROUNDS:',...(cyclic?['Unavailable due to cycle']:kahnData.levels.map((x,i)=>`Round ${i+1}: ${x.join(', ')}`)),...(cyclic?['',`Cycle: ${dfsData.cycle.concat(dfsData.cycle[0]).join(' -> ')}`]:[])];const blob=new Blob([lines.join('\n')],{type:'text/plain'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='project-execution-report.txt';a.click();URL.revokeObjectURL(url)}
+$('#scheduleBtn').onclick=run;$('#clearBtn').onclick=()=>{$('#source').value='';run()};$('#validSample').onclick=()=>{$('#source').value=VALID;run()};$('#cycleSample').onclick=()=>{$('#source').value=CYCLE;run()};$('#randomSample').onclick=()=>{$('#source').value=randomSample();run()};
+$('#kahnMode').onclick=()=>changeMode('kahn');$('#dfsMode').onclick=()=>changeMode('dfs');$('#stepRange').oninput=e=>setStep(e.target.value);$('#stepBack').onclick=()=>setStep(currentStep-1);$('#stepNext').onclick=()=>setStep(currentStep+1);
+$('#playBtn').onclick=()=>{if(timer){stopPlay();return}const max=getSequence().length;if(!max)return;setStep(0);$('#playBtn').textContent='Ⅱ Pause';timer=setInterval(()=>{if(currentStep>=max){stopPlay();return}setStep(currentStep+1)},700)};
+$('#searchTask').oninput=()=>{if(graph)renderAll()};$('#benchmarkBtn').onclick=runBenchmark;$('#exportBtn').onclick=exportReport;$('#resetBtn').onclick=()=>{$('#source').value=VALID;run()};
+$('#source').value=VALID;run();drawBenchmark([]);
+</script>
+</body>
+</html>
